@@ -1,60 +1,106 @@
 // ==UserScript==
 // @name         Save button in overlay
 // @namespace    hmm
-// @version      1.0.2
+// @version      1.0.1
 // @author       MisthiPlayz
 // @description  Adds a save button to the YouTube player overlay.
 // @match        https://www.youtube.com/*
-// @grant        GM_log
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_registerMenuCommand
 // @grant        GM_unregisterMenuCommand
-// @downloadURL https://github.com/MisthiPlayz/violent-script/raw/refs/heads/main/customytsavebutton.user.js
-// @updateURL https://github.com/MisthiPlayz/violent-script/raw/refs/heads/main/customytsavebutton.user.js
+// @downloadURL  https://raw.githubusercontent.com/MisthiPlayz/violent-script/main/customytsavebutton.user.js
+// @updateURL    https://raw.githubusercontent.com/MisthiPlayz/violent-script/main/customytsavebutton.user.js
 // ==/UserScript==
 
-(function(){
-  'use strict';
-  const q=(s,p=document)=>p.querySelector(s);
-  const wait=(fn,d=500)=>setTimeout(fn,d);
-  let lastUrl=location.href;
-  let buttonCreated=false;
-  
-  new MutationObserver(()=>{
-    if(location.href!==lastUrl){
-      lastUrl=location.href;
-      buttonCreated=false;
-      wait(init,1e3);
+(() => {
+  const SVG_PATH = 'M19 2H5a2 2 0 00-2 2v16.887c0 1.266 1.382 2.048 2.469 1.399L12 18.366l6.531 3.919c1.087.652 2.469-.131 2.469-1.397V4a2 2 0 00-2-2ZM5 20.233V4h14v16.233l-6.485-3.89-.515-.309-.515.309L5 20.233Z';
+  const BUTTON_CLASS = 'custom-save-button';
+  let button = null;
+  let url = location.href;
+  let timer = 0;
+
+  const observer = new MutationObserver(() => {
+    if (location.href === url) return;
+    url = location.href;
+    clearTimeout(timer);
+    button = null;
+    timer = setTimeout(inject, 500);
+  });
+
+  observer.observe(document, { subtree: true, childList: true });
+
+  const getNativeButton = () => document.querySelector('button[aria-label="Save to playlist"]');
+
+  const createButton = () => {
+    const el = document.createElement('div');
+    el.className = `ytp-button ${BUTTON_CLASS}`;
+    el.setAttribute('aria-label', 'Save Video');
+    el.title = 'Save Video';
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.style.cssText = 'pointer-events:none;display:block;width:24px;height:24px;fill:#fff;flex-shrink:0';
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', SVG_PATH);
+    svg.appendChild(path);
+    el.appendChild(svg);
+
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const native = getNativeButton();
+      if (native) native.click();
+    });
+
+    el.addEventListener('mouseenter', () => { el.style.opacity = '0.8'; });
+    el.addEventListener('mouseleave', () => { el.style.opacity = '1'; });
+
+    return el;
+  };
+
+  const inject = () => {
+    document.querySelectorAll(`.${BUTTON_CLASS}`).forEach(el => el.remove());
+
+    const container = document.querySelector('.ytp-right-controls-left');
+    if (!container) {
+      clearTimeout(timer);
+      timer = setTimeout(inject, 300);
+      return;
     }
-  }).observe(document,{subtree:true,childList:true});
-  
-  function init(){
-    const existingButton=document.querySelector('.custom-save-button');
-    if(existingButton||buttonCreated)return;
-    
-    const b=q('button[aria-label="Save to playlist"]');
-    const l=q('.ytp-right-controls-left');
-    if(!b||!l)return wait(init,500);
-    
-    const n=document.createElement('div');
-    n.className='ytp-button custom-save-button';
-    Object.assign(n.style,{display:'inline-flex',alignItems:'center',justifyContent:'center',height:'100%',padding:'0 4px',background:'transparent',border:'none',cursor:'pointer',verticalAlign:'middle'});
-    n.setAttribute('aria-label','Save Video');
-    n.setAttribute('title','Save Video');
-    const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
-    s.setAttribute('viewBox','0 0 24 24');
-    Object.assign(s.style,{pointerEvents:'none',display:'block',width:'24px',height:'24px',fill:'#fff',flexShrink:'0'});
-    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
-    p.setAttribute('d','M19 2H5a2 2 0 00-2 2v16.887c0 1.266 1.382 2.048 2.469 1.399L12 18.366l6.531 3.919c1.087.652 2.469-.131 2.469-1.397V4a2 2 0 00-2-2ZM5 20.233V4h14v16.233l-6.485-3.89-.515-.309-.515.309L5 20.233Z');
-    s.appendChild(p);n.appendChild(s);
-    n.onclick=e=>{e.preventDefault();e.stopPropagation();b.click();};
-    n.onmouseenter=function(){this.style.opacity='.8';};
-    n.onmouseleave=function(){this.style.opacity='1';};
-    const btns=l.querySelectorAll('button, button-view-model');
-    btns.length>=2&&btns[1]?.parentNode===l?l.insertBefore(n,btns[1].nextSibling):l.appendChild(n);
-    
-    buttonCreated=true;
-  }
-  wait(init,1500);
+
+    const existing = container.querySelector(`.${BUTTON_CLASS}`);
+    if (existing) return;
+
+    const newButton = createButton();
+    const children = container.children;
+    let inserted = false;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      if (child.tagName === 'BUTTON' || child.tagName === 'BUTTON-VIEW-MODEL') {
+        if (i + 1 < children.length) {
+          container.insertBefore(newButton, children[i + 1]);
+        } else {
+          container.appendChild(newButton);
+        }
+        inserted = true;
+        break;
+      }
+    }
+
+    if (!inserted) container.appendChild(newButton);
+    button = newButton;
+  };
+
+  const cleanup = () => {
+    clearTimeout(timer);
+    observer.disconnect();
+    document.querySelectorAll(`.${BUTTON_CLASS}`).forEach(el => el.remove());
+  };
+
+  window.addEventListener('unload', cleanup);
+
+  timer = setTimeout(inject, 800);
 })();
