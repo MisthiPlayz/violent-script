@@ -10,3 +10,5 @@ Installer links cuz yall are lazy:
 [Youtube peak black css](https://github.com/MisthiPlayz/violent-script/raw/refs/heads/main/stolencssbasically.user.js)
  
 [Twitch bonus points claimer](https://github.com/MisthiPlayz/violent-script/raw/refs/heads/main/twitchpointclaimer.user.js)
+ 
+[Youtube's Save button in Overlya](https://github.com/MisthiPlayz/violent-script/raw/refs/heads/main/customytsavebutton.user.js)
