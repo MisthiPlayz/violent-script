@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Save button in overlay
 // @namespace    hmm
-// @version      1.0.0
+// @version      1.0.1
 // @author       MisthiPlayz
 // @description  Adds a save button to the YouTube player overlay.
 // @match        https://www.youtube.com/*
@@ -19,13 +19,26 @@
   const q=(s,p=document)=>p.querySelector(s);
   const wait=(fn,d=500)=>setTimeout(fn,d);
   let lastUrl=location.href;
-  new MutationObserver(()=>{if(location.href!==lastUrl){lastUrl=location.href;wait(init,1e3);}}).observe(document,{subtree:true,childList:true});
+  let buttonCreated=false;
+  
+  new MutationObserver(()=>{
+    if(location.href!==lastUrl){
+      lastUrl=location.href;
+      buttonCreated=false;
+      wait(init,1e3);
+    }
+  }).observe(document,{subtree:true,childList:true});
+  
   function init(){
+    const existingButton=document.querySelector('.custom-save-button');
+    if(existingButton||buttonCreated)return;
+    
     const b=q('button[aria-label="Save to playlist"]');
     const l=q('.ytp-right-controls-left');
     if(!b||!l)return wait(init,500);
+    
     const n=document.createElement('div');
-    n.className='ytp-button';
+    n.className='ytp-button custom-save-button';
     Object.assign(n.style,{display:'inline-flex',alignItems:'center',justifyContent:'center',height:'100%',padding:'0 4px',background:'transparent',border:'none',cursor:'pointer',verticalAlign:'middle'});
     n.setAttribute('aria-label','Save Video');
     n.setAttribute('title','Save Video');
@@ -40,6 +53,8 @@
     n.onmouseleave=function(){this.style.opacity='1';};
     const btns=l.querySelectorAll('button, button-view-model');
     btns.length>=2&&btns[1]?.parentNode===l?l.insertBefore(n,btns[1].nextSibling):l.appendChild(n);
+    
+    buttonCreated=true;
   }
   wait(init,1500);
 })();
