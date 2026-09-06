@@ -1,17 +1,16 @@
 // ==UserScript==
 // @name         OLEDYT
-// @namespace    gsis-violentmonkey
+// @namespace    oledyt
 // @version      1.0.0
 // @description  yoinked css without credit 😍️
 // @author       MisthiPlayz
 // @homepageURL  https://github.com/MisthiPlayz/violent-script
 // @updateURL    https://github.com/MisthiPlayz/violent-script/raw/refs/heads/main/stolencssbasically.user.js
 // @downloadURL  https://github.com/MisthiPlayz/violent-script/raw/refs/heads/main/stolencssbasically.user.js
-// @match        https://www.google.com/search*
-// @match        https://google.com/search*
-// @include      /^https:\/\/(www\.)?google\.[a-z.]{2,24}\/search(\?.*)?$/
-// @run-at       document-idle
-// @grant        none
+// @match        https://www.youtube.com/*
+// @match        https://youtube.com/*
+// @run-at       document-start
+// @grant        GM_addStyle
 // ==/UserScript==
 
 (function () {
