@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Save button in overlay
 // @namespace    hmm
-// @version      1.0.1
+// @version      1.0.2
 // @author       MisthiPlayz
 // @description  Adds a save button to the YouTube player overlay.
 // @match        https://www.youtube.com/*
