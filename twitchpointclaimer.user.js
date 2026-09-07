@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto Claim twitch channel points
 // @namespace    twitchpointclaim
-// @version      1.0.0
+// @version      2.0.0
 // @description  let me know if it doesn't work in certain condition
 // @author       MisthiPlayz
 // @homepageURL  https://github.com/MisthiPlayz/violent-script
@@ -11,7 +11,6 @@
 // @run-at       document-start
 // @grant        GM_addStyle
 // ==/UserScript==
-
 (function () {
   'use strict';
 
@@ -58,6 +57,12 @@
   }
 
   function createObservers() {
+    // document.body is not guaranteed to exist yet at document-start.
+    // Bail out safely here; the caller is responsible for retrying once it is.
+    if (!document.body) {
+      throw new Error('document.body is not available yet');
+    }
+
     var summaryContainer = getSummaryContainer();
     if (summaryContainer) observeBonus();
 
@@ -75,10 +80,25 @@
     documentObserver.observe(document.body, { subtree: true, childList: true });
   }
 
+  function initWhenBodyReady() {
+    if (document.body) {
+      createObservers();
+      return;
+    }
+
+    document.addEventListener('DOMContentLoaded', function onReady() {
+      document.removeEventListener('DOMContentLoaded', onReady);
+      try {
+        createObservers();
+      } catch (err) {
+        console.error('Auto Claim Twitch Channel Points:', err);
+      }
+    });
+  }
+
   try {
-    createObservers();
+    initWhenBodyReady();
   } catch (err) {
     console.error('Auto Claim Twitch Channel Points:', err);
   }
 })();
-
