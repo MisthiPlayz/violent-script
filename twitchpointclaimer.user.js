@@ -57,8 +57,6 @@
   }
 
   function createObservers() {
-    // document.body is not guaranteed to exist yet at document-start.
-    // Bail out safely here; the caller is responsible for retrying once it is.
     if (!document.body) {
       throw new Error('document.body is not available yet');
     }
